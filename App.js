@@ -9,8 +9,9 @@ import {
 	Alert,
 } from "react-native";
 
-import { colors, CLEAR, ENTER } from "./src/constants";
+import { colors, CLEAR, ENTER, colorsToEmoji, words } from "./src/constants";
 import Keyboard from "./src/components/Keyboard";
+import * as Clipboard from "expo-clipboard";
 
 const NUM_TRIES = 6;
 
@@ -18,16 +19,22 @@ const copyArray = (arr) => {
 	return [...arr.map((rows) => [...rows])];
 };
 
+function getRandomWord() {
+	return Math.floor(Math.random() * words.length);
+}
+
+const randomWord = getRandomWord();
+
 export default function App() {
-	const word = "hello";
-	const letters = word.split("");
+	let word = words[randomWord];
+	let letters = word.split("");
 
 	const [rows, setRows] = useState(
 		new Array(NUM_TRIES).fill(new Array(letters.length).fill(""))
 	);
 	const [curRow, setCurRow] = useState(0);
 	const [curCol, setCurCol] = useState(0);
-	const [gameState, setGameState] = useState(""); //Won, lost, playing
+	const [gameState, setGameState] = useState("playing"); //Won, lost, playing
 
 	useEffect(() => {
 		if (curRow > 0) {
@@ -36,11 +43,14 @@ export default function App() {
 	}, [curRow]);
 
 	const checkGameState = () => {
-		if (checkIfWon()) {
-			Alert.alert("Yeehaw!", "You won!");
+		if (checkIfWon() && gameState !== "won") {
+			Alert.alert("Yeehaw!", "You won!", [
+				{ text: "Share", onPress: shareScore },
+				{ text: "No Thanks" },
+			]);
 			setGameState("won");
-		} else if (checkIfLost()) {
-			Alert.alert("Bummer!", "You lost!");
+		} else if (checkIfLost() && gameState !== "lost") {
+			Alert.alert("Bummer!", `The word was ${word.toUpperCase()}`);
 			setGameState("lost");
 		}
 	};
@@ -52,10 +62,38 @@ export default function App() {
 	};
 
 	const checkIfLost = () => {
-		return curRow === rows.length;
+		return !checkIfWon() && curRow === rows.length;
+	};
+
+	const shareScore = () => {
+		const textMap = rows
+			.map((row, i) =>
+				row.map((cell, j) => colorsToEmoji[getCellBGColor(i, j)]).join("")
+			)
+			.filter((row) => row)
+			.join("\n");
+
+		const textToShare = `Word Whirl - ${word}\n${textMap}`;
+		Clipboard.setString(textToShare);
+		Alert.alert("Copied to clipboard!", "Share your score on social media!");
+	};
+
+	const playAgain = () => {
+		// Update rows, curRow, and curCol
+		setRows(new Array(NUM_TRIES).fill(new Array(letters.length).fill("")));
+		setCurRow(0);
+		setCurCol(0);
+		setGameState("playing");
+
+		// Generate a new random word
+		const newRandomWordIndex = getRandomWord();
+		word = words[newRandomWordIndex];
+		letters = word.split("");
 	};
 
 	const onKeyPressed = (key) => {
+		console.log(key); // Check if the key press is being captured
+
 		if (gameState !== "playing") {
 			return;
 		}
@@ -73,6 +111,7 @@ export default function App() {
 		}
 
 		if (key === ENTER) {
+			console.log(word);
 			if (curCol === rows[0].length) {
 				setCurRow(curRow + 1);
 				setCurCol(0);
@@ -81,9 +120,12 @@ export default function App() {
 		}
 
 		if (curCol < rows[0].length) {
-			updatedRows[curRow][curCol] = key;
-			setRows(updatedRows);
-			setCurCol(curCol + 1);
+			const currentCell = updatedRows[curRow][curCol];
+			if (currentCell === "" || letters.includes(currentCell)) {
+				updatedRows[curRow][curCol] = key;
+				setRows(updatedRows);
+				setCurCol(curCol + 1);
+			}
 		}
 	};
 
