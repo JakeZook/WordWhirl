@@ -12,6 +12,7 @@ import {
 import { colors, CLEAR, ENTER, colorsToEmoji, words } from "./src/constants";
 import Keyboard from "./src/components/Keyboard";
 import * as Clipboard from "expo-clipboard";
+import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
 
 const NUM_TRIES = 6;
 
@@ -23,11 +24,9 @@ function getRandomWord() {
 	return Math.floor(Math.random() * words.length);
 }
 
-const randomWord = getRandomWord();
-
 export default function App() {
-	let word = words[randomWord];
-	let letters = word.split("");
+	const [word, setWord] = useState(words[getRandomWord()]);
+	const [letters, setLetters] = useState(word.split(""));
 
 	const [rows, setRows] = useState(
 		new Array(NUM_TRIES).fill(new Array(letters.length).fill(""))
@@ -37,20 +36,23 @@ export default function App() {
 	const [gameState, setGameState] = useState("playing"); //Won, lost, playing
 
 	useEffect(() => {
-		if (curRow > 0) {
+		// Check game state only if the game has started
+		if (curRow > 0 && gameState === "playing") {
 			checkGameState();
 		}
-	}, [curRow]);
+	}, [curRow, gameState]);
 
 	const checkGameState = () => {
 		if (checkIfWon() && gameState !== "won") {
-			Alert.alert("Yeehaw!", "You won!", [
+			Alert.alert("Yeehaw!", "You won! Share your score?", [
 				{ text: "Share", onPress: shareScore },
-				{ text: "No Thanks" },
+				{ text: "No Thanks", onPress: playAgain },
 			]);
 			setGameState("won");
 		} else if (checkIfLost() && gameState !== "lost") {
-			Alert.alert("Bummer!", `The word was ${word.toUpperCase()}`);
+			Alert.alert("Bummer!", `The word was ${word.toUpperCase()}`, [
+				{ text: "Try Again", onPress: playAgain },
+			]);
 			setGameState("lost");
 		}
 	};
@@ -86,14 +88,17 @@ export default function App() {
 		setGameState("playing");
 
 		// Generate a new random word
+		getWord();
+	};
+
+	const getWord = () => {
 		const newRandomWordIndex = getRandomWord();
-		word = words[newRandomWordIndex];
-		letters = word.split("");
+		setWord(words[newRandomWordIndex]);
+		setLetters(words[newRandomWordIndex].split(""));
+		console.log("Word: ", word);
 	};
 
 	const onKeyPressed = (key) => {
-		console.log(key); // Check if the key press is being captured
-
 		if (gameState !== "playing") {
 			return;
 		}
