@@ -12,7 +12,6 @@ import {
 import { colors, CLEAR, ENTER, colorsToEmoji, words } from "./src/constants";
 import Keyboard from "./src/components/Keyboard";
 import * as Clipboard from "expo-clipboard";
-import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
 
 const NUM_TRIES = 6;
 
@@ -98,7 +97,7 @@ export default function App() {
 		console.log("Word: ", word);
 	};
 
-	const onKeyPressed = (key) => {
+	const onKeyPressed = async (key) => {
 		if (gameState !== "playing") {
 			return;
 		}
@@ -116,10 +115,24 @@ export default function App() {
 		}
 
 		if (key === ENTER) {
-			console.log(word);
-			if (curCol === rows[0].length) {
-				setCurRow(curRow + 1);
-				setCurCol(0);
+			if (curCol === letters.length) {
+				// Ensure full word is entered
+				const currentWord = updatedRows[curRow].join("");
+				const isValid = await checkWord(currentWord);
+				if (isValid) {
+					// Proceed to the next row if the word is valid
+					setCurRow(curRow + 1);
+					setCurCol(0);
+				} else {
+					// Clear the current row and allow the user to try again
+					updatedRows[curRow] = new Array(letters.length).fill("");
+					setRows(updatedRows);
+					setCurCol(0);
+					Alert.alert(
+						"Invalid Word",
+						"That's not a valid English word. Please try again."
+					);
+				}
 			}
 			return;
 		}
@@ -162,6 +175,18 @@ export default function App() {
 	const greenCaps = getAllLettersWithColor(colors.primary);
 	const yellowCaps = getAllLettersWithColor(colors.secondary);
 	const greyCaps = getAllLettersWithColor(colors.darkgrey);
+
+	const checkWord = async (word) => {
+		const apiUrl = `https://api.dictionaryapi.dev/api/v2/entries/en/${word}`;
+		try {
+			const response = await fetch(apiUrl);
+			const data = await response.json();
+			return Array.isArray(data) && data.length > 0;
+		} catch (error) {
+			console.error("Error fetching data: ", error);
+			return false;
+		}
+	};
 
 	return (
 		<SafeAreaView style={styles.container}>
