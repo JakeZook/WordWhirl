@@ -11,6 +11,7 @@ import {
 
 // import { colors, CLEAR, ENTER, colorsToEmoji, words } from ""
 import { colors, CLEAR, ENTER, colorsToEmoji, words } from "../constants";
+import HoveringText from "../components/Keyboard/HoveringText";
 import Keyboard from "../components/Keyboard/Keyboard";
 import * as Clipboard from "expo-clipboard";
 
@@ -36,7 +37,6 @@ function getTodaysWord(words) {
 
 export default function GameScreen({ navigation }) {
 	const [word, setWord] = useState(getTodaysWord(words));
-	console.log(word);
 	const [letters, setLetters] = useState(word.split(""));
 
 	const [rows, setRows] = useState(
@@ -45,6 +45,7 @@ export default function GameScreen({ navigation }) {
 	const [curRow, setCurRow] = useState(0);
 	const [curCol, setCurCol] = useState(0);
 	const [gameState, setGameState] = useState("playing"); //Won, lost, playing
+	const [invalidWord, setInvalidWord] = useState(false);
 
 	useEffect(() => {
 		// Check game state only if the game has started
@@ -122,10 +123,8 @@ export default function GameScreen({ navigation }) {
 					updatedRows[curRow] = new Array(letters.length).fill("");
 					setRows(updatedRows);
 					setCurCol(0);
-					Alert.alert(
-						"Invalid Word",
-						"That's not a valid English word. Please try again."
-					);
+					setInvalidWord(true);
+					setTimeout(() => setInvalidWord(false), 2000);
 				}
 			}
 			return;
@@ -185,12 +184,10 @@ export default function GameScreen({ navigation }) {
 	return (
 		<SafeAreaView style={styles.container}>
 			<StatusBar style="light" />
-
 			<Text>
 				<Text style={styles.title}>Word </Text>
 				<Text style={[styles.title, styles.titleSecondary]}>Whirl</Text>
 			</Text>
-
 			<ScrollView style={styles.map}>
 				{rows.map((row, rowIndex) => (
 					<View key={`row-${rowIndex}`} style={styles.row}>
@@ -213,13 +210,13 @@ export default function GameScreen({ navigation }) {
 					</View>
 				))}
 			</ScrollView>
-
 			<Keyboard
 				onKeyPressed={onKeyPressed}
 				greenCaps={greenCaps}
 				yellowCaps={yellowCaps}
 				greyCaps={greyCaps}
 			/>
+			<HoveringText visible={invalidWord} message="Not in word list!" />
 		</SafeAreaView>
 	);
 }
