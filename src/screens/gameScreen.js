@@ -24,7 +24,7 @@ function getRandomWord() {
 	return Math.floor(Math.random() * words.length);
 }
 
-export default function GameScreen() {
+export default function GameScreen({ navigation }) {
 	const [word, setWord] = useState(words[getRandomWord()]);
 	const [letters, setLetters] = useState(word.split(""));
 
@@ -46,12 +46,12 @@ export default function GameScreen() {
 		if (checkIfWon() && gameState !== "won") {
 			Alert.alert("Yeehaw!", "You won! Share your score?", [
 				{ text: "Share", onPress: shareScore },
-				{ text: "No Thanks", onPress: playAgain },
+				{ text: "No Thanks", onPress: () => navigation.goBack() },
 			]);
 			setGameState("won");
 		} else if (checkIfLost() && gameState !== "lost") {
 			Alert.alert("Bummer!", `The word was ${word.toUpperCase()}`, [
-				{ text: "Try Again", onPress: playAgain },
+				{ text: "Menu", onPress: () => navigation.goBack() },
 			]);
 			setGameState("lost");
 		}
@@ -78,24 +78,6 @@ export default function GameScreen() {
 		const textToShare = `Word Whirl - ${word}\n${textMap}`;
 		Clipboard.setString(textToShare);
 		Alert.alert("Copied to clipboard!", "Share your score on social media!");
-	};
-
-	const playAgain = () => {
-		// Update rows, curRow, and curCol
-		setRows(new Array(NUM_TRIES).fill(new Array(letters.length).fill("")));
-		setCurRow(0);
-		setCurCol(0);
-		setGameState("playing");
-
-		// Generate a new random word
-		getWord();
-	};
-
-	const getWord = () => {
-		const newRandomWordIndex = getRandomWord();
-		setWord(words[newRandomWordIndex]);
-		setLetters(words[newRandomWordIndex].split(""));
-		console.log("Word: ", word);
 	};
 
 	const onKeyPressed = async (key) => {
