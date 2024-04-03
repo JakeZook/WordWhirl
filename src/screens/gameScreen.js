@@ -20,12 +20,23 @@ const copyArray = (arr) => {
 	return [...arr.map((rows) => [...rows])];
 };
 
-function getRandomWord() {
-	return Math.floor(Math.random() * words.length);
+function getTodaysWord(words) {
+	// Choose a start date for your puzzle in the past
+	const startDate = new Date("2024-01-01");
+	const now = new Date();
+
+	// Calculate the difference in days
+	const differenceInTime = now - startDate;
+	const differenceInDays = Math.floor(differenceInTime / (1000 * 3600 * 24));
+
+	const index = differenceInDays % words.length;
+
+	return words[index];
 }
 
 export default function GameScreen({ navigation }) {
-	const [word, setWord] = useState(words[getRandomWord()]);
+	const [word, setWord] = useState(getTodaysWord(words));
+	console.log(word);
 	const [letters, setLetters] = useState(word.split(""));
 
 	const [rows, setRows] = useState(
