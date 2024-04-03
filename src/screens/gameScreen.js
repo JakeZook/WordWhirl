@@ -7,7 +7,9 @@ import {
 	View,
 	ScrollView,
 	Alert,
+	ActivityIndicator,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // import { colors, CLEAR, ENTER, colorsToEmoji, words } from ""
 import { colors, CLEAR, ENTER, colorsToEmoji, words } from "../constants";
@@ -36,6 +38,7 @@ function getTodaysWord(words) {
 }
 
 export default function GameScreen({ navigation }) {
+	// AsyncStorage.removeItem("gameData");
 	const [word, setWord] = useState(getTodaysWord(words));
 	const [letters, setLetters] = useState(word.split(""));
 
@@ -45,6 +48,7 @@ export default function GameScreen({ navigation }) {
 	const [curRow, setCurRow] = useState(0);
 	const [curCol, setCurCol] = useState(0);
 	const [gameState, setGameState] = useState("playing"); //Won, lost, playing
+	const [loaded, setLoaded] = useState(false);
 	const [invalidWord, setInvalidWord] = useState(false);
 
 	useEffect(() => {
@@ -53,6 +57,45 @@ export default function GameScreen({ navigation }) {
 			checkGameState();
 		}
 	}, [curRow, gameState]);
+
+	useEffect(() => {
+		if (loaded) {
+			saveGame();
+		}
+	}, [rows, curRow, curCol, gameState]);
+
+	useEffect(() => {
+		readData();
+	}, []);
+
+	const saveGame = async () => {
+		const gameData = {
+			rows,
+			curRow,
+			curCol,
+			gameState,
+		};
+
+		const dataString = JSON.stringify(gameData);
+		await AsyncStorage.setItem("gameData", dataString);
+	};
+
+	const readData = async () => {
+		const dataString = await AsyncStorage.getItem("gameData");
+
+		try {
+			const gameData = JSON.parse(dataString);
+			if (gameData) {
+				setRows(gameData.rows);
+				setCurRow(gameData.curRow);
+				setCurCol(gameData.curCol);
+				setGameState(gameData.gameState);
+			}
+		} catch (error) {
+			console.error("Error reading data: ", error);
+		}
+		setLoaded(true);
+	};
 
 	const checkGameState = () => {
 		if (checkIfWon() && gameState !== "won") {
@@ -180,6 +223,10 @@ export default function GameScreen({ navigation }) {
 			return false;
 		}
 	};
+
+	if (!loaded) {
+		return <ActivityIndicator />;
+	}
 
 	return (
 		<SafeAreaView style={styles.container}>
