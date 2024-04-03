@@ -9,10 +9,13 @@ import {
 	Alert,
 	ActivityIndicator,
 } from "react-native";
+import { HeaderBackButton } from "@react-navigation/stack";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // import { colors, CLEAR, ENTER, colorsToEmoji, words } from ""
 import { colors, CLEAR, ENTER, colorsToEmoji, words } from "../constants";
+import BackButton from "../components/BackBtn";
+import LeaderboardButton from "../components/Leaderboard";
 import HoveringText from "../components/Keyboard/HoveringText";
 import Keyboard from "../components/Keyboard/Keyboard";
 import * as Clipboard from "expo-clipboard";
@@ -38,7 +41,7 @@ function getTodaysWord(words) {
 }
 
 export default function GameScreen({ navigation }) {
-	// AsyncStorage.removeItem("gameData");
+	AsyncStorage.removeItem("gameData");
 	const [word, setWord] = useState(getTodaysWord(words));
 	const [letters, setLetters] = useState(word.split(""));
 
@@ -231,10 +234,14 @@ export default function GameScreen({ navigation }) {
 	return (
 		<SafeAreaView style={styles.container}>
 			<StatusBar style="light" />
-			<Text>
-				<Text style={styles.title}>Word </Text>
-				<Text style={[styles.title, styles.titleSecondary]}>Whirl</Text>
-			</Text>
+			<View style={styles.header}>
+				<View style={styles.titleContainer}>
+					<BackButton onPress={() => navigation.goBack()} />
+					<Text style={styles.title}>Word </Text>
+					<Text style={[styles.title, styles.titleSecondary]}>Whirl</Text>
+					<LeaderboardButton onPress={() => navigation.goBack()} />
+				</View>
+			</View>
 			<ScrollView style={styles.map}>
 				{rows.map((row, rowIndex) => (
 					<View key={`row-${rowIndex}`} style={styles.row}>
@@ -272,6 +279,10 @@ const styles = StyleSheet.create({
 	container: {
 		flex: 1,
 		backgroundColor: colors.black,
+		alignItems: "center",
+	},
+	titleContainer: {
+		flexDirection: "row",
 		alignItems: "center",
 	},
 	title: {

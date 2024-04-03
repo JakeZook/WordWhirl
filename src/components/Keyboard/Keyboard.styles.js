@@ -11,13 +11,12 @@ export default StyleSheet.create({
 		marginTop: "auto",
 	},
 	row: {
-		alignSelf: "stretch",
 		flexDirection: "row",
 		justifyContent: "center",
 	},
 	key: {
-		width: keyWidth - 4,
-		height: keyHeight - 4,
+		width: keyWidth - 2,
+		height: keyHeight - 2,
 		margin: 2,
 		borderRadius: 5,
 		backgroundColor: colors.grey,
