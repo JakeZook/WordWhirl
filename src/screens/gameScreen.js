@@ -9,16 +9,14 @@ import {
 	Alert,
 	ActivityIndicator,
 } from "react-native";
-import { HeaderBackButton } from "@react-navigation/stack";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Clipboard from "expo-clipboard";
 
-// import { colors, CLEAR, ENTER, colorsToEmoji, words } from ""
 import { colors, CLEAR, ENTER, colorsToEmoji, words } from "../constants";
 import BackButton from "../components/BackBtn";
 import LeaderboardButton from "../components/Leaderboard";
 import HoveringText from "../components/Keyboard/HoveringText";
 import Keyboard from "../components/Keyboard/Keyboard";
-import * as Clipboard from "expo-clipboard";
 
 const NUM_TRIES = 6;
 
@@ -27,21 +25,17 @@ const copyArray = (arr) => {
 };
 
 function getTodaysWord(words) {
-	// Choose a start date for your puzzle in the past
-	const startDate = new Date("2024-01-01");
 	const now = new Date();
+	const startOfYear = new Date(now.getFullYear(), 0, 0);
+	const diff = now - startOfYear;
+	const oneDay = 1000 * 60 * 60 * 24;
+	const dayOfYear = Math.floor(diff / oneDay);
 
-	// Calculate the difference in days
-	const differenceInTime = now - startDate;
-	const differenceInDays = Math.floor(differenceInTime / (1000 * 3600 * 24));
-
-	const index = differenceInDays % words.length;
-
-	return words[index];
+	return words[dayOfYear];
 }
 
 export default function GameScreen({ navigation }) {
-	AsyncStorage.removeItem("gameData");
+	// AsyncStorage.removeItem("gameData");
 	const [word, setWord] = useState(getTodaysWord(words));
 	const [letters, setLetters] = useState(word.split(""));
 
@@ -102,17 +96,26 @@ export default function GameScreen({ navigation }) {
 
 	const checkGameState = () => {
 		if (checkIfWon() && gameState !== "won") {
-			Alert.alert("Yeehaw!", "You won! Share your score?", [
-				{ text: "Share", onPress: shareScore },
-				{ text: "No Thanks", onPress: () => navigation.goBack() },
-			]);
 			setGameState("won");
-		} else if (checkIfLost() && gameState !== "lost") {
-			Alert.alert("Bummer!", `The word was ${word.toUpperCase()}`, [
-				{ text: "Menu", onPress: () => navigation.goBack() },
+			Alert.alert("You won!", "Share your score?", [
+				{ text: "Share", onPress: shareScore },
+				{ text: "No thanks", onPress: () => goToEndScreen("won") },
 			]);
+		} else if (checkIfLost() && gameState !== "lost") {
 			setGameState("lost");
+			Alert.alert("You lost!", "Share your score?", [
+				{ text: "Share", onPress: shareScore },
+				{ text: "No thanks", onPress: () => goToEndScreen("lost") },
+			]);
 		}
+	};
+
+	const goToEndScreen = (gameState) => {
+		navigation.navigate("GameOver", {
+			word: word,
+			gameState: gameState,
+			curRow: curRow,
+		});
 	};
 
 	const checkIfWon = () => {
@@ -135,7 +138,15 @@ export default function GameScreen({ navigation }) {
 
 		const textToShare = `Word Whirl - ${word}\n${textMap}`;
 		Clipboard.setString(textToShare);
-		Alert.alert("Copied to clipboard!", "Share your score on social media!");
+		let newGameState = gameState;
+		if (checkIfWon()) {
+			newGameState = "won";
+		} else if (checkIfLost()) {
+			newGameState = "lost";
+		}
+		Alert.alert("Copied to clipboard!", "Continue to end screen?", [
+			{ text: "OK", onPress: () => goToEndScreen(newGameState) },
+		]);
 	};
 
 	const onKeyPressed = async (key) => {
