@@ -1,6 +1,8 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { useRoute } from "@react-navigation/native";
+import { useFonts } from "expo-font";
+
 import { colors } from "../constants";
 
 const totalGames = 48;
@@ -11,6 +13,14 @@ for (let i = 0; i < guessDB.length; i++) {
 }
 
 const GameOver = ({ navigation }) => {
+	const [fontsLoaded] = useFonts({
+		stones: require("../../assets/stones.otf"),
+	});
+
+	if (!fontsLoaded) {
+		return null;
+	}
+
 	const route = useRoute();
 	const { word, gameState, curRow } = route.params;
 
@@ -140,10 +150,12 @@ const styles = StyleSheet.create({
 		marginTop: 100,
 		fontSize: 38,
 		color: colors.primary,
+		fontFamily: "stones",
 	},
 	subTitle: {
 		fontSize: 28,
 		color: colors.secondary,
+		fontFamily: "stones",
 	},
 	stats: {
 		flexDirection: "row",
@@ -161,6 +173,7 @@ const styles = StyleSheet.create({
 		color: colors.white,
 		fontSize: 20,
 		margin: 10,
+		fontFamily: "stones",
 	},
 	guessDist: {
 		marginTop: 30,
@@ -173,6 +186,7 @@ const styles = StyleSheet.create({
 		marginTop: 30,
 		fontSize: 28,
 		color: colors.white,
+		fontFamily: "stones",
 	},
 	guessRow: {
 		marginVertical: 10,
@@ -208,6 +222,7 @@ const styles = StyleSheet.create({
 	buttonText: {
 		color: colors.white,
 		fontSize: 28,
+		fontFamily: "stones",
 	},
 });
 

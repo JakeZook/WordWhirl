@@ -1,8 +1,17 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { colors } from "../constants";
+import { useFonts } from "expo-font";
 
 function MainMenu({ navigation }) {
+	const [fontsLoaded] = useFonts({
+		stones: require("../../assets/stones.otf"),
+	});
+
+	if (!fontsLoaded) {
+		return null;
+	}
+
 	return (
 		<View style={styles.container}>
 			<View style={styles.content}>
@@ -50,6 +59,7 @@ const styles = StyleSheet.create({
 	title: {
 		fontSize: 64,
 		color: colors.primary,
+		fontFamily: "stones",
 	},
 	titleSecondary: {
 		color: colors.secondary,
@@ -62,19 +72,20 @@ const styles = StyleSheet.create({
 		padding: 10,
 		borderRadius: 5,
 		marginTop: 20,
-		width: 200, // Adjust the width as needed
+		width: 200,
 	},
 	secondButton: {
 		backgroundColor: colors.secondary,
 		padding: 10,
 		borderRadius: 5,
 		marginTop: 20,
-		width: 200, // Adjust the width as needed
+		width: 200,
 	},
 	buttonText: {
 		color: colors.white,
 		fontSize: 28,
 		textAlign: "center",
+		fontFamily: "stones",
 	},
 	footerText: {
 		position: "absolute",

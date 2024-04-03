@@ -6,6 +6,7 @@ import MainMenu from "./src/screens/mainMenu";
 import GameScreen from "./src/screens/gameScreen";
 import HowToPlay from "./src/screens/HowToPlay";
 import GameOver from "./src/screens/gameOver";
+
 const Stack = createNativeStackNavigator();
 
 function App() {

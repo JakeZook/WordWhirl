@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Clipboard from "expo-clipboard";
+import { useFonts } from "expo-font";
 
 import { colors, CLEAR, ENTER, colorsToEmoji, words } from "../constants";
 import BackButton from "../components/BackBtn";
@@ -36,6 +37,14 @@ function getTodaysWord(words) {
 
 export default function GameScreen({ navigation }) {
 	// AsyncStorage.removeItem("gameData");
+	const [fontsLoaded] = useFonts({
+		stones: require("../../assets/stones.otf"),
+	});
+
+	if (!fontsLoaded) {
+		return null;
+	}
+
 	const [word, setWord] = useState(getTodaysWord(words));
 	const [letters, setLetters] = useState(word.split(""));
 
@@ -301,9 +310,11 @@ const styles = StyleSheet.create({
 		fontSize: 32,
 		fontWeight: "bold",
 		letterSpacing: 5,
+		fontFamily: "stones",
 	},
 	titleSecondary: {
 		color: colors.secondary,
+		fontFamily: "stones",
 	},
 	map: {
 		alignSelf: "stretch",
@@ -332,5 +343,6 @@ const styles = StyleSheet.create({
 		color: colors.white,
 		fontWeight: "bold",
 		fontSize: 28,
+		fontFamily: "stones",
 	},
 });
