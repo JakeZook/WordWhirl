@@ -7,13 +7,17 @@ import {
 	View,
 	ScrollView,
 	Alert,
+	ActivityIndicator,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Clipboard from "expo-clipboard";
+import { useFonts } from "expo-font";
 
-// import { colors, CLEAR, ENTER, colorsToEmoji, words } from ""
 import { colors, CLEAR, ENTER, colorsToEmoji, words } from "../constants";
+import BackButton from "../components/BackBtn";
+import LeaderboardButton from "../components/Leaderboard";
 import HoveringText from "../components/Keyboard/HoveringText";
 import Keyboard from "../components/Keyboard/Keyboard";
-import * as Clipboard from "expo-clipboard";
 
 const NUM_TRIES = 6;
 
@@ -21,23 +25,35 @@ const copyArray = (arr) => {
 	return [...arr.map((rows) => [...rows])];
 };
 
-function getTodaysWord(words) {
-	// Choose a start date for your puzzle in the past
-	const startDate = new Date("2024-01-01");
+function getDayOfYear() {
 	const now = new Date();
+	const startOfYear = new Date(now.getFullYear(), 0, 0);
+	const diff = now - startOfYear;
+	const oneDay = 1000 * 60 * 60 * 24;
+	return Math.floor(diff / oneDay);
+}
 
-	// Calculate the difference in days
-	const differenceInTime = now - startDate;
-	const differenceInDays = Math.floor(differenceInTime / (1000 * 3600 * 24));
+function getTodaysWord(words) {
+	const dayOfYear = getDayOfYear();
 
-	const index = differenceInDays % words.length;
-
-	return words[index];
+	console.log(words[dayOfYear]);
+	return words[dayOfYear];
 }
 
 export default function GameScreen({ navigation }) {
+	// AsyncStorage.removeItem("gameData");
+	// AsyncStorage.removeItem("gameStats");
+	const [fontsLoaded] = useFonts({
+		stones: require("../../assets/stones.otf"),
+	});
+
+	if (!fontsLoaded) {
+		return null;
+	}
+
 	const [word, setWord] = useState(getTodaysWord(words));
 	const [letters, setLetters] = useState(word.split(""));
+	const [dayOfYear, setDayOfYear] = useState(getDayOfYear());
 
 	const [rows, setRows] = useState(
 		new Array(NUM_TRIES).fill(new Array(letters.length).fill(""))
@@ -45,6 +61,7 @@ export default function GameScreen({ navigation }) {
 	const [curRow, setCurRow] = useState(0);
 	const [curCol, setCurCol] = useState(0);
 	const [gameState, setGameState] = useState("playing"); //Won, lost, playing
+	const [loaded, setLoaded] = useState(false);
 	const [invalidWord, setInvalidWord] = useState(false);
 
 	useEffect(() => {
@@ -54,19 +71,124 @@ export default function GameScreen({ navigation }) {
 		}
 	}, [curRow, gameState]);
 
+	useEffect(() => {
+		if (loaded) {
+			saveGame();
+		}
+	}, [rows, curRow, curCol, gameState]);
+
+	useEffect(() => {
+		readData();
+	}, []);
+
+	const saveGame = async () => {
+		const gameData = {
+			rows,
+			curRow,
+			curCol,
+			gameState,
+			word,
+			dayOfYear,
+		};
+
+		const dataString = JSON.stringify(gameData);
+		await AsyncStorage.setItem("gameData", dataString);
+	};
+
+	const readData = async () => {
+		const dataString = await AsyncStorage.getItem("gameData");
+
+		try {
+			const gameData = JSON.parse(dataString);
+			if (gameData) {
+				setRows(gameData.rows);
+				setCurRow(gameData.curRow);
+				setCurCol(gameData.curCol);
+				setGameState(gameData.gameState);
+				if (gameData.dayOfYear !== dayOfYear) {
+					AsyncStorage.removeItem("gameData");
+					setRows(
+						new Array(NUM_TRIES).fill(new Array(letters.length).fill(""))
+					);
+					setCurRow(0);
+					setCurCol(0);
+					setGameState("playing");
+				}
+			}
+		} catch (error) {
+			console.error("Error reading data: ", error);
+		}
+		setLoaded(true);
+	};
+
 	const checkGameState = () => {
 		if (checkIfWon() && gameState !== "won") {
-			Alert.alert("Yeehaw!", "You won! Share your score?", [
-				{ text: "Share", onPress: shareScore },
-				{ text: "No Thanks", onPress: () => navigation.goBack() },
-			]);
 			setGameState("won");
-		} else if (checkIfLost() && gameState !== "lost") {
-			Alert.alert("Bummer!", `The word was ${word.toUpperCase()}`, [
-				{ text: "Menu", onPress: () => navigation.goBack() },
+			updateGameStats();
+			Alert.alert("You won!", "Share your score?", [
+				{ text: "Share", onPress: shareScore },
+				{ text: "No thanks", onPress: () => goToEndScreen("won") },
 			]);
+		} else if (checkIfLost() && gameState !== "lost") {
 			setGameState("lost");
+			updateGameStats();
+			Alert.alert("You lost!", "Share your score?", [
+				{ text: "Share", onPress: shareScore },
+				{ text: "No thanks", onPress: () => goToEndScreen("lost") },
+			]);
 		}
+	};
+
+	const updateGameStats = async () => {
+		try {
+			const today = new Date().toLocaleDateString();
+			let gameStats = await AsyncStorage.getItem("gameStats");
+
+			if (!gameStats) {
+				gameStats = {
+					games: 1,
+					lastDate: today,
+					dist: new Array(NUM_TRIES).fill(0),
+				};
+				if (checkIfWon()) {
+					gameStats.gamesWon = 1;
+					gameStats.streak = 1;
+					gameStats.best = 1;
+					gameStats.dist[curRow - 1] = 1;
+				} else {
+					gameStats.gamesWon = 0;
+					gameStats.streak = 0;
+					gameStats.best = 0;
+					gameStats.dist[curRow - 1] = 0;
+				}
+			} else {
+				gameStats = JSON.parse(gameStats);
+				if (gameStats.lastDate !== today) {
+					gameStats.games += 1;
+					if (checkIfWon()) {
+						gameStats.gamesWon += 1;
+						gameStats.streak += 1;
+						gameStats.dist[curRow - 1]++;
+						if (gameStats.streak > gameStats.best) {
+							gameStats.best = gameStats.streak;
+						}
+					} else {
+						gameStats.streak = 0;
+					}
+					gameStats.lastDate = today;
+				}
+			}
+			await AsyncStorage.setItem("gameStats", JSON.stringify(gameStats));
+		} catch (error) {
+			console.error("Error updating game stats: ", error);
+		}
+	};
+
+	const goToEndScreen = (gameState) => {
+		navigation.navigate("GameOver", {
+			word: word,
+			gameState: gameState,
+		});
 	};
 
 	const checkIfWon = () => {
@@ -89,7 +211,15 @@ export default function GameScreen({ navigation }) {
 
 		const textToShare = `Word Whirl - ${word}\n${textMap}`;
 		Clipboard.setString(textToShare);
-		Alert.alert("Copied to clipboard!", "Share your score on social media!");
+		let newGameState = gameState;
+		if (checkIfWon()) {
+			newGameState = "won";
+		} else if (checkIfLost()) {
+			newGameState = "lost";
+		}
+		Alert.alert("Copied to clipboard!", "Continue to end screen?", [
+			{ text: "OK", onPress: () => goToEndScreen(newGameState) },
+		]);
 	};
 
 	const onKeyPressed = async (key) => {
@@ -181,13 +311,21 @@ export default function GameScreen({ navigation }) {
 		}
 	};
 
+	if (!loaded) {
+		return <ActivityIndicator />;
+	}
+
 	return (
 		<SafeAreaView style={styles.container}>
 			<StatusBar style="light" />
-			<Text>
-				<Text style={styles.title}>Word </Text>
-				<Text style={[styles.title, styles.titleSecondary]}>Whirl</Text>
-			</Text>
+			<View style={styles.header}>
+				<View style={styles.titleContainer}>
+					<BackButton onPress={() => navigation.goBack()} />
+					<Text style={styles.title}>Word </Text>
+					<Text style={[styles.title, styles.titleSecondary]}>Whirl</Text>
+					<LeaderboardButton onPress={() => navigation.goBack()} />
+				</View>
+			</View>
 			<ScrollView style={styles.map}>
 				{rows.map((row, rowIndex) => (
 					<View key={`row-${rowIndex}`} style={styles.row}>
@@ -227,14 +365,20 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.black,
 		alignItems: "center",
 	},
+	titleContainer: {
+		flexDirection: "row",
+		alignItems: "center",
+	},
 	title: {
 		color: colors.primary,
 		fontSize: 32,
 		fontWeight: "bold",
 		letterSpacing: 5,
+		fontFamily: "stones",
 	},
 	titleSecondary: {
 		color: colors.secondary,
+		fontFamily: "stones",
 	},
 	map: {
 		alignSelf: "stretch",
@@ -263,5 +407,6 @@ const styles = StyleSheet.create({
 		color: colors.white,
 		fontWeight: "bold",
 		fontSize: 28,
+		fontFamily: "stones",
 	},
 });
