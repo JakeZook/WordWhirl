@@ -36,10 +36,13 @@ function getDayOfYear() {
 function getTodaysWord(words) {
 	const dayOfYear = getDayOfYear();
 
+	console.log(words[dayOfYear]);
 	return words[dayOfYear];
 }
 
 export default function GameScreen({ navigation }) {
+	// AsyncStorage.removeItem("gameData");
+	// AsyncStorage.removeItem("gameStats");
 	const [fontsLoaded] = useFonts({
 		stones: require("../../assets/stones.otf"),
 	});
@@ -102,8 +105,6 @@ export default function GameScreen({ navigation }) {
 				setCurRow(gameData.curRow);
 				setCurCol(gameData.curCol);
 				setGameState(gameData.gameState);
-				console.log(gameData.dayOfYear, dayOfYear);
-				console.log(gameData.word, word);
 				if (gameData.dayOfYear !== dayOfYear) {
 					AsyncStorage.removeItem("gameData");
 					setRows(
@@ -123,12 +124,14 @@ export default function GameScreen({ navigation }) {
 	const checkGameState = () => {
 		if (checkIfWon() && gameState !== "won") {
 			setGameState("won");
+			updateGameStats();
 			Alert.alert("You won!", "Share your score?", [
 				{ text: "Share", onPress: shareScore },
 				{ text: "No thanks", onPress: () => goToEndScreen("won") },
 			]);
 		} else if (checkIfLost() && gameState !== "lost") {
 			setGameState("lost");
+			updateGameStats();
 			Alert.alert("You lost!", "Share your score?", [
 				{ text: "Share", onPress: shareScore },
 				{ text: "No thanks", onPress: () => goToEndScreen("lost") },
@@ -136,11 +139,55 @@ export default function GameScreen({ navigation }) {
 		}
 	};
 
+	const updateGameStats = async () => {
+		try {
+			const today = new Date().toLocaleDateString();
+			let gameStats = await AsyncStorage.getItem("gameStats");
+
+			if (!gameStats) {
+				gameStats = {
+					games: 1,
+					lastDate: today,
+					dist: new Array(NUM_TRIES).fill(0),
+				};
+				if (checkIfWon()) {
+					gameStats.gamesWon = 1;
+					gameStats.streak = 1;
+					gameStats.best = 1;
+					gameStats.dist[curRow - 1] = 1;
+				} else {
+					gameStats.gamesWon = 0;
+					gameStats.streak = 0;
+					gameStats.best = 0;
+					gameStats.dist[curRow - 1] = 0;
+				}
+			} else {
+				gameStats = JSON.parse(gameStats);
+				if (gameStats.lastDate !== today) {
+					gameStats.games += 1;
+					if (checkIfWon()) {
+						gameStats.gamesWon += 1;
+						gameStats.streak += 1;
+						gameStats.dist[curRow - 1]++;
+						if (gameStats.streak > gameStats.best) {
+							gameStats.best = gameStats.streak;
+						}
+					} else {
+						gameStats.streak = 0;
+					}
+					gameStats.lastDate = today;
+				}
+			}
+			await AsyncStorage.setItem("gameStats", JSON.stringify(gameStats));
+		} catch (error) {
+			console.error("Error updating game stats: ", error);
+		}
+	};
+
 	const goToEndScreen = (gameState) => {
 		navigation.navigate("GameOver", {
 			word: word,
 			gameState: gameState,
-			curRow: curRow,
 		});
 	};
 

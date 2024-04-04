@@ -1,28 +1,32 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { useRoute } from "@react-navigation/native";
 import { useFonts } from "expo-font";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { colors } from "../constants";
 
-const totalGames = 48;
-const guessDB = [1, 2, 4, 8, 15, 28];
-const completion = [];
-for (let i = 0; i < guessDB.length; i++) {
-	completion[i] = (guessDB[i] / totalGames) * 100;
-}
-
 const GameOver = ({ navigation }) => {
+	const [stats, setStats] = useState({});
 	const [fontsLoaded] = useFonts({
 		stones: require("../../assets/stones.otf"),
 	});
+
+	useEffect(() => {
+		getStats();
+	}, []);
+
+	async function getStats() {
+		const gameStats = await AsyncStorage.getItem("gameStats");
+		setStats(JSON.parse(gameStats));
+	}
 
 	if (!fontsLoaded) {
 		return null;
 	}
 
 	const route = useRoute();
-	const { word, gameState, curRow } = route.params;
+	const { word, gameState } = route.params;
 
 	const message = gameState === "won" ? "Congrats!" : "Bummer!";
 
@@ -35,103 +39,45 @@ const GameOver = ({ navigation }) => {
 			</Text>
 			<View style={styles.stats}>
 				<View style={styles.statsContainer}>
-					<Text style={styles.statsText}>5</Text>
+					<Text style={styles.statsText}>{stats.games}</Text>
 					<Text style={styles.statsText}>Games</Text>
 				</View>
 				<View style={styles.statsContainer}>
-					<Text style={styles.statsText}>5</Text>
+					<Text style={styles.statsText}>{stats.gamesWon}</Text>
 					<Text style={styles.statsText}>Wins</Text>
 				</View>
 				<View style={styles.statsContainer}>
-					<Text style={styles.statsText}>5</Text>
+					<Text style={styles.statsText}>{stats.streak}</Text>
 					<Text style={styles.statsText}>Streak</Text>
 				</View>
 				<View style={styles.statsContainer}>
-					<Text style={styles.statsText}>5</Text>
+					<Text style={styles.statsText}>{stats.best}</Text>
 					<Text style={styles.statsText}>Best</Text>
 				</View>
 			</View>
 			<Text style={styles.guessDistTitle}>Guess Distribution:</Text>
 			<View style={styles.guessDist}>
-				<View style={styles.guessRow}>
-					<View style={styles.cellContainer}>
-						<Text style={styles.cell}>1</Text>
-					</View>
-					<View style={styles.progressBarContainer}>
-						<View
-							style={[styles.progressBar, { width: `${completion[0]}%` }]}
-						/>
-					</View>
-					<View>
-						<Text style={styles.statsText}>5</Text>
-					</View>
-				</View>
-				<View style={styles.guessRow}>
-					<View style={styles.cellContainer}>
-						<Text style={styles.cell}>2</Text>
-					</View>
-					<View style={styles.progressBarContainer}>
-						<View
-							style={[styles.progressBar, { width: `${completion[1]}%` }]}
-						/>
-					</View>
-					<View>
-						<Text style={styles.statsText}>5</Text>
-					</View>
-				</View>
-				<View style={styles.guessRow}>
-					<View style={styles.cellContainer}>
-						<Text style={styles.cell}>3</Text>
-					</View>
-					<View style={styles.progressBarContainer}>
-						<View
-							style={[styles.progressBar, { width: `${completion[2]}%` }]}
-						/>
-					</View>
-					<View>
-						<Text style={styles.statsText}>5</Text>
-					</View>
-				</View>
-				<View style={styles.guessRow}>
-					<View style={styles.cellContainer}>
-						<Text style={styles.cell}>4</Text>
-					</View>
-					<View style={styles.progressBarContainer}>
-						<View
-							style={[styles.progressBar, { width: `${completion[3]}%` }]}
-						/>
-					</View>
-					<View>
-						<Text style={styles.statsText}>5</Text>
-					</View>
-				</View>
-				<View style={styles.guessRow}>
-					<View style={styles.cellContainer}>
-						<Text style={styles.cell}>5</Text>
-					</View>
-					<View style={styles.progressBarContainer}>
-						<View
-							style={[styles.progressBar, { width: `${completion[4]}%` }]}
-						/>
-					</View>
-					<View>
-						<Text style={styles.statsText}>5</Text>
-					</View>
-				</View>
-				<View style={styles.guessRow}>
-					<View style={styles.cellContainer}>
-						<Text style={styles.cell}>6</Text>
-					</View>
-					<View style={styles.progressBarContainer}>
-						<View
-							style={[styles.progressBar, { width: `${completion[5]}%` }]}
-						/>
-					</View>
-					<View>
-						<Text style={styles.statsText}>5</Text>
-					</View>
-				</View>
+				{stats.dist &&
+					stats.dist.map((e, index) => (
+						<View key={index} style={styles.guessRow}>
+							<View style={styles.cellContainer}>
+								<Text style={styles.cell}>{index + 1}</Text>
+							</View>
+							<View style={styles.progressBarContainer}>
+								<View
+									style={[
+										styles.progressBar,
+										{ width: `${(e / stats.games) * 100}%` },
+									]}
+								/>
+							</View>
+							<View>
+								<Text style={styles.statsText}>{stats.dist[index]}</Text>
+							</View>
+						</View>
+					))}
 			</View>
+
 			<TouchableOpacity
 				style={styles.button}
 				onPress={() => navigation.navigate("MainMenu")}

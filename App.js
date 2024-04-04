@@ -6,6 +6,7 @@ import MainMenu from "./src/screens/mainMenu";
 import GameScreen from "./src/screens/gameScreen";
 import HowToPlay from "./src/screens/HowToPlay";
 import GameOver from "./src/screens/gameOver";
+import Score from "./src/screens/Score";
 
 const Stack = createNativeStackNavigator();
 
@@ -31,6 +32,11 @@ function App() {
 				<Stack.Screen
 					name="GameOver"
 					component={GameOver}
+					options={{ headerShown: false }}
+				/>
+				<Stack.Screen
+					name="Score"
+					component={Score}
 					options={{ headerShown: false }}
 				/>
 			</Stack.Navigator>
