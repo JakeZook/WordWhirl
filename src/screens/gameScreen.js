@@ -25,18 +25,21 @@ const copyArray = (arr) => {
 	return [...arr.map((rows) => [...rows])];
 };
 
-function getTodaysWord(words) {
+function getDayOfYear() {
 	const now = new Date();
 	const startOfYear = new Date(now.getFullYear(), 0, 0);
 	const diff = now - startOfYear;
 	const oneDay = 1000 * 60 * 60 * 24;
-	const dayOfYear = Math.floor(diff / oneDay);
+	return Math.floor(diff / oneDay);
+}
+
+function getTodaysWord(words) {
+	const dayOfYear = getDayOfYear();
 
 	return words[dayOfYear];
 }
 
 export default function GameScreen({ navigation }) {
-	// AsyncStorage.removeItem("gameData");
 	const [fontsLoaded] = useFonts({
 		stones: require("../../assets/stones.otf"),
 	});
@@ -47,6 +50,7 @@ export default function GameScreen({ navigation }) {
 
 	const [word, setWord] = useState(getTodaysWord(words));
 	const [letters, setLetters] = useState(word.split(""));
+	const [dayOfYear, setDayOfYear] = useState(getDayOfYear());
 
 	const [rows, setRows] = useState(
 		new Array(NUM_TRIES).fill(new Array(letters.length).fill(""))
@@ -80,6 +84,8 @@ export default function GameScreen({ navigation }) {
 			curRow,
 			curCol,
 			gameState,
+			word,
+			dayOfYear,
 		};
 
 		const dataString = JSON.stringify(gameData);
@@ -96,6 +102,17 @@ export default function GameScreen({ navigation }) {
 				setCurRow(gameData.curRow);
 				setCurCol(gameData.curCol);
 				setGameState(gameData.gameState);
+				console.log(gameData.dayOfYear, dayOfYear);
+				console.log(gameData.word, word);
+				if (gameData.dayOfYear !== dayOfYear) {
+					AsyncStorage.removeItem("gameData");
+					setRows(
+						new Array(NUM_TRIES).fill(new Array(letters.length).fill(""))
+					);
+					setCurRow(0);
+					setCurCol(0);
+					setGameState("playing");
+				}
 			}
 		} catch (error) {
 			console.error("Error reading data: ", error);

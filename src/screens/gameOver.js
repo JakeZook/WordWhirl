@@ -29,7 +29,10 @@ const GameOver = ({ navigation }) => {
 	return (
 		<View style={styles.container}>
 			<Text style={styles.title}>{message}</Text>
-			<Text style={styles.subTitle}>The word was: {word.toUpperCase()}</Text>
+			<Text style={styles.subTitle}>
+				The word was:{" "}
+				<Text style={{ color: colors.white }}>{word.toUpperCase()}</Text>
+			</Text>
 			<View style={styles.stats}>
 				<View style={styles.statsContainer}>
 					<Text style={styles.statsText}>5</Text>
