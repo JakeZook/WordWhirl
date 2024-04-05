@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import { useRoute } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Clipboard from "expo-clipboard";
 
 import { colors } from "../constants";
 
 const GameOver = ({ navigation }) => {
 	const [stats, setStats] = useState({});
+	const [countdown, setCountdown] = useState("");
+
 	const [fontsLoaded] = useFonts({
 		stones: require("../../assets/stones.otf"),
 	});
@@ -16,10 +19,42 @@ const GameOver = ({ navigation }) => {
 		getStats();
 	}, []);
 
+	useEffect(() => {
+		updateCountdown();
+		const intervalId = setInterval(updateCountdown, 1000);
+
+		return () => clearInterval(intervalId);
+	}, []);
+
 	async function getStats() {
 		const gameStats = await AsyncStorage.getItem("gameStats");
 		setStats(JSON.parse(gameStats));
 	}
+
+	const updateCountdown = () => {
+		const now = new Date();
+		const tomorrow = new Date(
+			now.getFullYear(),
+			now.getMonth(),
+			now.getDate() + 1
+		);
+		const diff = tomorrow - now;
+
+		let hours = Math.floor(diff / (1000 * 60 * 60));
+		let minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+		let seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+		const formatted = `${hours.toString().padStart(2, "0")}:${minutes
+			.toString()
+			.padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+		setCountdown(formatted);
+	};
+
+	const shareScore = () => {
+		const message = `Games played: ${stats.games}\nGames won: ${stats.gamesWon}\nStreak: ${stats.streak}\nBest streak: ${stats.best}\n\nGuess distribution:\n${stats.dist}`;
+		Clipboard.setStringAsync(message);
+		Alert.alert("Score copied to clipboard!");
+	};
 
 	if (!fontsLoaded) {
 		return null;
@@ -37,6 +72,10 @@ const GameOver = ({ navigation }) => {
 				The word was:{" "}
 				<Text style={{ color: colors.white }}>{word.toUpperCase()}</Text>
 			</Text>
+			<View>
+				<Text style={styles.countdown}>Next Word in:</Text>
+				<Text style={styles.countdown}>{countdown}</Text>
+			</View>
 			<View style={styles.stats}>
 				<View style={styles.statsContainer}>
 					<Text style={styles.statsText}>{stats.games}</Text>
@@ -77,13 +116,17 @@ const GameOver = ({ navigation }) => {
 						</View>
 					))}
 			</View>
-
-			<TouchableOpacity
-				style={styles.button}
-				onPress={() => navigation.navigate("MainMenu")}
-			>
-				<Text style={styles.buttonText}>Menu</Text>
-			</TouchableOpacity>
+			<View style={styles.btnContainer}>
+				<TouchableOpacity
+					style={styles.button}
+					onPress={() => navigation.navigate("MainMenu")}
+				>
+					<Text style={styles.buttonText}>Menu</Text>
+				</TouchableOpacity>
+				<TouchableOpacity style={styles.button} onPress={() => shareScore()}>
+					<Text style={styles.buttonText}>Share</Text>
+				</TouchableOpacity>
+			</View>
 		</View>
 	);
 };
@@ -96,7 +139,7 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.black,
 	},
 	title: {
-		marginTop: 100,
+		marginTop: 50,
 		fontSize: 38,
 		color: colors.primary,
 		fontFamily: "stones",
@@ -105,6 +148,13 @@ const styles = StyleSheet.create({
 		fontSize: 28,
 		color: colors.secondary,
 		fontFamily: "stones",
+		paddingBottom: 5,
+	},
+	countdown: {
+		fontSize: 18,
+		color: colors.white,
+		fontFamily: "stones",
+		textAlign: "center",
 	},
 	stats: {
 		flexDirection: "row",
@@ -114,7 +164,7 @@ const styles = StyleSheet.create({
 	},
 	statsContainer: {
 		margin: 10,
-		marginTop: 25,
+		marginTop: 5,
 		flexDirection: "column",
 		alignItems: "center",
 	},
@@ -162,11 +212,16 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.primary,
 		borderRadius: 5,
 	},
+	btnContainer: {
+		flexDirection: "row",
+		marginTop: 10,
+	},
 	button: {
 		backgroundColor: colors.secondary,
 		paddingVertical: 10,
 		paddingHorizontal: 20,
 		borderRadius: 5,
+		marginHorizontal: 20,
 	},
 	buttonText: {
 		color: colors.white,
