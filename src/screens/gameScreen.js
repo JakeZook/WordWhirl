@@ -331,7 +331,7 @@ export default function GameScreen({ navigation }) {
 					<BackButton onPress={() => navigation.goBack()} />
 					<Text style={styles.title}>Word </Text>
 					<Text style={[styles.title, styles.titleSecondary]}>Whirl</Text>
-					<LeaderboardButton onPress={() => navigation.goBack()} />
+					<LeaderboardButton onPress={() => navigation.navigate("Score")} />
 				</View>
 			</View>
 			<ScrollView style={styles.map}>
