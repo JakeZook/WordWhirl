@@ -209,7 +209,15 @@ export default function GameScreen({ navigation }) {
 			.filter((row) => row)
 			.join("\n");
 
-		const textToShare = `Word Whirl - ${word}\n${textMap}`;
+		const currentDate = new Date();
+		const dateString =
+			(currentDate.getMonth() + 1).toString().padStart(2, "0") +
+			"/" +
+			currentDate.getDate().toString().padStart(2, "0") +
+			"/" +
+			currentDate.getFullYear().toString();
+
+		const textToShare = `Word Whirl - ${dateString}\n${textMap}`;
 		Clipboard.setString(textToShare);
 		let newGameState = gameState;
 		if (checkIfWon()) {
