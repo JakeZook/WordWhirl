@@ -5,7 +5,6 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import MainMenu from "./src/screens/mainMenu";
 import GameScreen from "./src/screens/gameScreen";
 import HowToPlay from "./src/screens/HowToPlay";
-import GameOver from "./src/screens/gameOver";
 import Score from "./src/screens/Score";
 
 const Stack = createNativeStackNavigator();
@@ -27,11 +26,6 @@ function App() {
 				<Stack.Screen
 					name="HowToPlay"
 					component={HowToPlay}
-					options={{ headerShown: false }}
-				/>
-				<Stack.Screen
-					name="GameOver"
-					component={GameOver}
 					options={{ headerShown: false }}
 				/>
 				<Stack.Screen

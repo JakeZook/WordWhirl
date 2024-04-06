@@ -1,5 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
+import {
+	View,
+	Text,
+	StyleSheet,
+	TouchableOpacity,
+	Alert,
+	Animated,
+} from "react-native";
 import { useFonts } from "expo-font";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Clipboard from "expo-clipboard";
@@ -9,10 +16,20 @@ import { colors } from "../constants";
 const Score = ({ navigation }) => {
 	const [stats, setStats] = useState({});
 	const [countdown, setCountdown] = useState("");
+	const [progress] = useState(new Animated.Value(0));
 
 	const [fontsLoaded] = useFonts({
 		stones: require("../../assets/stones.otf"),
 	});
+
+	useEffect(() => {
+		// Animate the progress bar
+		Animated.timing(progress, {
+			toValue: 1,
+			duration: 1000,
+			useNativeDriver: false,
+		}).start();
+	}, [progress]);
 
 	useEffect(() => {
 		getStats();
@@ -27,6 +44,16 @@ const Score = ({ navigation }) => {
 
 	async function getStats() {
 		const gameStats = await AsyncStorage.getItem("gameStats");
+		if (gameStats === null) {
+			setStats({
+				games: 0,
+				gamesWon: 0,
+				streak: 0,
+				best: 0,
+				dist: [],
+			});
+			return;
+		}
 		setStats(JSON.parse(gameStats));
 	}
 
@@ -93,10 +120,15 @@ const Score = ({ navigation }) => {
 								<Text style={styles.cell}>{index + 1}</Text>
 							</View>
 							<View style={styles.progressBarContainer}>
-								<View
+								<Animated.View
 									style={[
 										styles.progressBar,
-										{ width: `${(e / stats.games) * 100}%` },
+										{
+											width: progress.interpolate({
+												inputRange: [0, 1],
+												outputRange: ["0%", `${(e / stats.games) * 100}%`],
+											}),
+										},
 									]}
 								/>
 							</View>

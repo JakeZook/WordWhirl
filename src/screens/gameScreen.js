@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { StatusBar } from "expo-status-bar";
 import {
 	StyleSheet,
@@ -8,10 +8,17 @@ import {
 	ScrollView,
 	Alert,
 	ActivityIndicator,
+	TouchableOpacity,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Clipboard from "expo-clipboard";
 import { useFonts } from "expo-font";
+import Animated, {
+	SlideInLeft,
+	SlideInDown,
+	ZoomIn,
+	FlipInEasyY,
+} from "react-native-reanimated";
 
 import { colors, CLEAR, ENTER, colorsToEmoji, words } from "../constants";
 import BackButton from "../components/BackBtn";
@@ -35,8 +42,6 @@ function getDayOfYear() {
 
 function getTodaysWord(words) {
 	const dayOfYear = getDayOfYear();
-
-	console.log(words[dayOfYear]);
 	return words[dayOfYear];
 }
 
@@ -63,6 +68,7 @@ export default function GameScreen({ navigation }) {
 	const [gameState, setGameState] = useState("playing"); //Won, lost, playing
 	const [loaded, setLoaded] = useState(false);
 	const [invalidWord, setInvalidWord] = useState(false);
+	const [gameOver, setGameOver] = useState(false);
 
 	useEffect(() => {
 		// Check game state only if the game has started
@@ -125,17 +131,15 @@ export default function GameScreen({ navigation }) {
 		if (checkIfWon() && gameState !== "won") {
 			setGameState("won");
 			updateGameStats();
-			Alert.alert("You won!", "Share your score?", [
-				{ text: "Share", onPress: shareScore },
-				{ text: "No thanks", onPress: () => goToEndScreen("won") },
-			]);
+			setTimeout(() => {
+				setGameOver(true);
+			}, 1000);
 		} else if (checkIfLost() && gameState !== "lost") {
 			setGameState("lost");
 			updateGameStats();
-			Alert.alert("You lost!", "Share your score?", [
-				{ text: "Share", onPress: shareScore },
-				{ text: "No thanks", onPress: () => goToEndScreen("lost") },
-			]);
+			setTimeout(() => {
+				setGameOver(true);
+			}, 1000);
 		}
 	};
 
@@ -184,13 +188,6 @@ export default function GameScreen({ navigation }) {
 		}
 	};
 
-	const goToEndScreen = (gameState) => {
-		navigation.navigate("GameOver", {
-			word: word,
-			gameState: gameState,
-		});
-	};
-
 	const checkIfWon = () => {
 		const row = rows[curRow - 1];
 
@@ -225,9 +222,8 @@ export default function GameScreen({ navigation }) {
 		} else if (checkIfLost()) {
 			newGameState = "lost";
 		}
-		Alert.alert("Copied to clipboard!", "Continue to end screen?", [
-			{ text: "OK", onPress: () => goToEndScreen(newGameState) },
-		]);
+		Alert.alert("Score copied to clipboard!");
+		navigation.navigate("Score");
 	};
 
 	const onKeyPressed = async (key) => {
@@ -307,6 +303,16 @@ export default function GameScreen({ navigation }) {
 	const yellowCaps = getAllLettersWithColor(colors.secondary);
 	const greyCaps = getAllLettersWithColor(colors.darkgrey);
 
+	const getCellStyles = (rowIndex, cellIndex) => [
+		styles.cell,
+		{
+			borderColor: isCellActive(rowIndex, cellIndex)
+				? colors.lightgrey
+				: colors.grey,
+			backgroundColor: getCellBGColor(rowIndex, cellIndex),
+		},
+	];
+
 	const checkWord = async (word) => {
 		const apiUrl = `https://api.dictionaryapi.dev/api/v2/entries/en/${word}`;
 		try {
@@ -336,33 +342,85 @@ export default function GameScreen({ navigation }) {
 			</View>
 			<ScrollView style={styles.map}>
 				{rows.map((row, rowIndex) => (
-					<View key={`row-${rowIndex}`} style={styles.row}>
+					<Animated.View
+						entering={SlideInLeft.delay(rowIndex * 50)}
+						key={`row-${rowIndex}`}
+						style={styles.row}
+					>
 						{row.map((letter, cellIndex) => (
-							<View
-								key={`cell-${rowIndex}-${cellIndex}`}
-								style={[
-									styles.cell,
-									{
-										borderColor: isCellActive(rowIndex, cellIndex)
-											? colors.lightgrey
-											: colors.grey,
-										backgroundColor: getCellBGColor(rowIndex, cellIndex),
-									},
-								]}
-							>
-								<Text style={styles.cellText}>{letter.toUpperCase()}</Text>
-							</View>
+							<React.Fragment key={`cell-fragment-${rowIndex}-${cellIndex}`}>
+								{rowIndex < curRow && (
+									<Animated.View
+										entering={FlipInEasyY.delay(cellIndex * 100)}
+										key={`cell-color-${rowIndex}-${cellIndex}`}
+										style={getCellStyles(rowIndex, cellIndex)}
+									>
+										<Text style={styles.cellText}>{letter.toUpperCase()}</Text>
+									</Animated.View>
+								)}
+								{rowIndex === curRow && !!letter && (
+									<Animated.View
+										entering={ZoomIn}
+										key={`cell-active-${rowIndex}-${cellIndex}`}
+										style={getCellStyles(rowIndex, cellIndex)}
+									>
+										<Text style={styles.cellText}>{letter.toUpperCase()}</Text>
+									</Animated.View>
+								)}
+								{!letter && (
+									<View
+										key={`cell-empty-${rowIndex}-${cellIndex}`}
+										style={getCellStyles(rowIndex, cellIndex)}
+									>
+										<Text style={styles.cellText}>{letter.toUpperCase()}</Text>
+									</View>
+								)}
+							</React.Fragment>
 						))}
-					</View>
+					</Animated.View>
 				))}
 			</ScrollView>
-			<Keyboard
-				onKeyPressed={onKeyPressed}
-				greenCaps={greenCaps}
-				yellowCaps={yellowCaps}
-				greyCaps={greyCaps}
-			/>
-			<HoveringText visible={invalidWord} message="Not in word list!" />
+			{!gameOver && (
+				<React.Fragment>
+					<Keyboard
+						onKeyPressed={onKeyPressed}
+						greenCaps={greenCaps}
+						yellowCaps={yellowCaps}
+						greyCaps={greyCaps}
+					/>
+					<HoveringText visible={invalidWord} message="Not in word list!" />
+				</React.Fragment>
+			)}
+			{gameOver && (
+				<Animated.View
+					entering={SlideInDown.delay(500)}
+					style={styles.shareContainer}
+				>
+					<Text style={styles.shareText}>
+						{gameState === "won" ? "Congrats!" : "Bummer!"}
+					</Text>
+					<Text style={styles.shareTextWord}>
+						The word was:{" "}
+						<Text style={{ color: colors.white }}>{word.toUpperCase()}</Text>
+					</Text>
+					<View style={styles.btnContainer}>
+						<TouchableOpacity
+							style={styles.button}
+							title="Share"
+							onPress={shareScore}
+						>
+							<Text style={styles.buttonText}>Share</Text>
+						</TouchableOpacity>
+						<TouchableOpacity
+							style={styles.button}
+							title="No thanks"
+							onPress={() => navigation.navigate("Score")}
+						>
+							<Text style={styles.buttonText}>Scores</Text>
+						</TouchableOpacity>
+					</View>
+				</Animated.View>
+			)}
 		</SafeAreaView>
 	);
 }
@@ -414,6 +472,40 @@ const styles = StyleSheet.create({
 	cellText: {
 		color: colors.white,
 		fontWeight: "bold",
+		fontSize: 28,
+		fontFamily: "stones",
+	},
+	shareContainer: {
+		display: "flex",
+		alignItems: "center",
+		justifyContent: "flex-start",
+		marginBottom: 20,
+	},
+	shareText: {
+		color: colors.primary,
+		fontSize: 36,
+		fontFamily: "stones",
+		marginBottom: 20,
+	},
+	shareTextWord: {
+		color: colors.secondary,
+		fontSize: 30,
+		fontFamily: "stones",
+		marginBottom: 20,
+	},
+	btnContainer: {
+		flexDirection: "row",
+		marginTop: 10,
+	},
+	button: {
+		backgroundColor: colors.secondary,
+		paddingVertical: 10,
+		paddingHorizontal: 20,
+		borderRadius: 5,
+		marginHorizontal: 20,
+	},
+	buttonText: {
+		color: colors.white,
 		fontSize: 28,
 		fontFamily: "stones",
 	},
