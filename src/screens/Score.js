@@ -77,7 +77,16 @@ const Score = ({ navigation }) => {
 	};
 
 	const shareScore = () => {
-		const message = `Games played: ${stats.games}\nGames won: ${stats.gamesWon}\nStreak: ${stats.streak}\nBest streak: ${stats.best}\n\nGuess distribution:\n${stats.dist}`;
+		const message = `Word Whirl\nGames played: ${stats.games}\nGames won: ${
+			stats.gamesWon
+		}\nStreak: ${stats.streak}\nBest streak: ${stats.best}\n
+		\nGuess distribution:\n1: ${(stats.dist[0] / stats.games) * 100}%\n2: ${
+			(stats.dist[1] / stats.games) * 100
+		}%\n3: ${(stats.dist[2] / stats.games) * 100}%\n4: ${
+			(stats.dist[3] / stats.games) * 100
+		}%\n5: ${(stats.dist[4] / stats.games) * 100}%\n6: ${
+			(stats.dist[5] / stats.games) * 100
+		}%\n`;
 		Clipboard.setStringAsync(message);
 		Alert.alert("Score copied to clipboard!");
 	};
