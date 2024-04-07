@@ -142,7 +142,9 @@ const Score = ({ navigation }) => {
 								/>
 							</View>
 							<View>
-								<Text style={styles.statsText}>{stats.dist[index]}</Text>
+								<Text style={styles.statsText}>{`${
+									(e / stats.games) * 100
+								}%`}</Text>
 							</View>
 						</View>
 					))}
