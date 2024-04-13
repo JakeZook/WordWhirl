@@ -4,6 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { colors } from "../constants";
 
+//Back button for navigation
 const BackButton = () => {
 	const navigation = useNavigation();
 

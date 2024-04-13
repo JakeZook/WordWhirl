@@ -17,6 +17,7 @@ const Keyboard = ({
 		return key === ENTER || key === CLEAR;
 	};
 
+	//Assigns colors to letters on keyboard
 	const getKeyBGColor = (key) => {
 		if (greenCaps.includes(key)) {
 			return colors.primary;

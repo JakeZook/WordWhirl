@@ -3,6 +3,7 @@ import { TouchableOpacity, StyleSheet } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { colors } from "../constants";
 
+//Leaderboard button for navigation
 const LeaderboardButton = ({ onPress }) => {
 	return (
 		<TouchableOpacity onPress={onPress} style={styles.container}>

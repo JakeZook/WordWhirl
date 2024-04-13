@@ -26,11 +26,12 @@ import LeaderboardButton from "../components/Leaderboard";
 import HoveringText from "../components/Keyboard/HoveringText";
 import Keyboard from "../components/Keyboard/Keyboard";
 
+//Number of words player can guess
 const NUM_TRIES = 6;
 
 const copyArray = (arr) => {
 	return [...arr.map((rows) => [...rows])];
-};
+}; //Deep copy of array
 
 function getDayOfYear() {
 	const now = new Date();
@@ -40,19 +41,19 @@ function getDayOfYear() {
 	const dayOfYear = Math.floor(diff / oneDay);
 	console.log("Day of year: ", dayOfYear);
 	return dayOfYear;
-}
+} //Gets numbered day of year for word array
 
 function getTodaysWord(words) {
 	const dayOfYear = getDayOfYear();
 	return words[dayOfYear];
-}
+} //Gets word of the day
 
 export default function GameScreen({ navigation }) {
-	AsyncStorage.removeItem("gameData");
+	// AsyncStorage.removeItem("gameData");
 	// AsyncStorage.removeItem("gameStats");
 	const [fontsLoaded] = useFonts({
 		stones: require("../../assets/stones.otf"),
-	});
+	}); //Load custom font
 
 	if (!fontsLoaded) {
 		return null;
@@ -80,12 +81,14 @@ export default function GameScreen({ navigation }) {
 	}, [curRow, gameState]);
 
 	useEffect(() => {
+		//Load game data
 		if (loaded) {
 			saveGame();
 		}
 	}, [rows, curRow, curCol, gameState]);
 
 	useEffect(() => {
+		//Read data at start
 		readData();
 	}, []);
 
@@ -101,7 +104,7 @@ export default function GameScreen({ navigation }) {
 
 		const dataString = JSON.stringify(gameData);
 		await AsyncStorage.setItem("gameData", dataString);
-	};
+	}; //Save game data
 
 	const readData = async () => {
 		const dataString = await AsyncStorage.getItem("gameData");
@@ -127,7 +130,7 @@ export default function GameScreen({ navigation }) {
 			console.error("Error reading data: ", error);
 		}
 		setLoaded(true);
-	};
+	}; //Read game data, if null, create empty data
 
 	const checkGameState = () => {
 		if (checkIfWon() && gameState !== "won") {
@@ -143,7 +146,7 @@ export default function GameScreen({ navigation }) {
 				setGameOver(true);
 			}, 1000);
 		}
-	};
+	}; //check if player has won or lost
 
 	const updateGameStats = async () => {
 		try {
@@ -188,17 +191,17 @@ export default function GameScreen({ navigation }) {
 		} catch (error) {
 			console.error("Error updating game stats: ", error);
 		}
-	};
+	}; //Update game stats
 
 	const checkIfWon = () => {
 		const row = rows[curRow - 1];
 
 		return row.every((letter, i) => letter === letters[i]);
-	};
+	}; //Check if player guessed word
 
 	const checkIfLost = () => {
 		return !checkIfWon() && curRow === rows.length;
-	};
+	}; //Check if player ran out of turns
 
 	const shareScore = () => {
 		const textMap = rows
@@ -226,7 +229,7 @@ export default function GameScreen({ navigation }) {
 		}
 		Alert.alert("Score copied to clipboard!");
 		navigation.navigate("Score");
-	};
+	}; //Get game data and copy to clipboard
 
 	const onKeyPressed = async (key) => {
 		if (gameState !== "playing") {
@@ -274,11 +277,11 @@ export default function GameScreen({ navigation }) {
 				setCurCol(curCol + 1);
 			}
 		}
-	};
+	}; //Handle keyboard interactions
 
 	const isCellActive = (row, col) => {
 		return row === curRow && col === curCol;
-	};
+	}; //Find active cell
 
 	const getCellBGColor = (row, col) => {
 		const letter = rows[row][col];
@@ -293,13 +296,13 @@ export default function GameScreen({ navigation }) {
 			return colors.secondary;
 		}
 		return colors.darkgrey;
-	};
+	}; //Change bg color of cells on board
 
 	const getAllLettersWithColor = (color) => {
 		return rows.flatMap((row, i) =>
 			row.filter((cell, j) => getCellBGColor(i, j) === color)
 		);
-	};
+	}; //Find all the letters on board with color
 
 	const greenCaps = getAllLettersWithColor(colors.primary);
 	const yellowCaps = getAllLettersWithColor(colors.secondary);
@@ -325,7 +328,7 @@ export default function GameScreen({ navigation }) {
 			console.error("Error fetching data: ", error);
 			return false;
 		}
-	};
+	}; //Check if word is valid with dictionary API
 
 	if (!loaded) {
 		return <ActivityIndicator />;

@@ -20,7 +20,7 @@ const Score = ({ navigation }) => {
 
 	const [fontsLoaded] = useFonts({
 		stones: require("../../assets/stones.otf"),
-	});
+	}); // Load custom font
 
 	useEffect(() => {
 		// Animate the progress bar
@@ -33,14 +33,14 @@ const Score = ({ navigation }) => {
 
 	useEffect(() => {
 		getStats();
-	}, []);
+	}, []); //get player stats
 
 	useEffect(() => {
 		updateCountdown();
 		const intervalId = setInterval(updateCountdown, 1000);
 
 		return () => clearInterval(intervalId);
-	}, []);
+	}, []); //Countdown for next word
 
 	async function getStats() {
 		const gameStats = await AsyncStorage.getItem("gameStats");
@@ -55,7 +55,7 @@ const Score = ({ navigation }) => {
 			return;
 		}
 		setStats(JSON.parse(gameStats));
-	}
+	} //Get player stats
 
 	const updateCountdown = () => {
 		const now = new Date();
@@ -74,7 +74,7 @@ const Score = ({ navigation }) => {
 			.toString()
 			.padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
 		setCountdown(formatted);
-	};
+	}; //Update numbers on countdown
 
 	const shareScore = () => {
 		const message = `Word Whirl Stats:
@@ -91,12 +91,12 @@ ${stats.dist
 
 		Clipboard.setStringAsync(message);
 		Alert.alert("Score copied to clipboard!");
-	};
+	}; //Get stats and copy to clipboard
 
 	const getPercent = (e) => {
 		const percent = (e / stats.games) * 100;
 		return Math.round(percent * 10) / 10;
-	};
+	}; //Get rounded percentage for guess dist
 
 	if (!fontsLoaded) {
 		return null;

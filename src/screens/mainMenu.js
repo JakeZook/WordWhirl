@@ -6,7 +6,7 @@ import { useFonts } from "expo-font";
 function MainMenu({ navigation }) {
 	const [fontsLoaded] = useFonts({
 		stones: require("../../assets/stones.otf"),
-	});
+	}); // Load custom font
 
 	if (!fontsLoaded) {
 		return null;

@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { colors } from "../../constants";
 
+//Text to hover on game screen when a word is invalid
 const HoveringText = ({ visible, message }) => {
 	if (!visible) {
 		return null;
