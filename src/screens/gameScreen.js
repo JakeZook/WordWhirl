@@ -37,7 +37,9 @@ function getDayOfYear() {
 	const startOfYear = new Date(now.getFullYear(), 0, 0);
 	const diff = now - startOfYear;
 	const oneDay = 1000 * 60 * 60 * 24;
-	return Math.floor(diff / oneDay);
+	const dayOfYear = Math.floor(diff / oneDay);
+	console.log("Day of year: ", dayOfYear);
+	return dayOfYear;
 }
 
 function getTodaysWord(words) {
@@ -46,7 +48,7 @@ function getTodaysWord(words) {
 }
 
 export default function GameScreen({ navigation }) {
-	// AsyncStorage.removeItem("gameData");
+	AsyncStorage.removeItem("gameData");
 	// AsyncStorage.removeItem("gameStats");
 	const [fontsLoaded] = useFonts({
 		stones: require("../../assets/stones.otf"),
