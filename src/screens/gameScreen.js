@@ -39,7 +39,6 @@ function getDayOfYear() {
 	const diff = now - startOfYear;
 	const oneDay = 1000 * 60 * 60 * 24;
 	const dayOfYear = Math.floor(diff / oneDay);
-	console.log("Day of year: ", dayOfYear);
 	return dayOfYear;
 } //Gets numbered day of year for word array
 
