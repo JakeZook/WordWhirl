@@ -48,7 +48,7 @@ function getTodaysWord(words) {
 } //Gets word of the day
 
 export default function GameScreen({ navigation }) {
-	// AsyncStorage.removeItem("gameData");
+	AsyncStorage.removeItem("gameData");
 	// AsyncStorage.removeItem("gameStats");
 	const [fontsLoaded] = useFonts({
 		stones: require("../../assets/stones.otf"),
@@ -339,7 +339,7 @@ export default function GameScreen({ navigation }) {
 			<View style={styles.header}>
 				<View style={styles.titleContainer}>
 					<BackButton onPress={() => navigation.goBack()} />
-					<Text style={styles.title}>Word </Text>
+					<Text style={styles.title}>Wordy </Text>
 					<Text style={[styles.title, styles.titleSecondary]}>Whirl</Text>
 					<LeaderboardButton onPress={() => navigation.navigate("Score")} />
 				</View>

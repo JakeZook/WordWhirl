@@ -18,7 +18,8 @@
       "stones": "./assets/stones.otf"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.jakeistoast.wordwhirl"
     },
     "android": {
       "adaptiveIcon": {
@@ -34,6 +35,9 @@
         "projectId": "e1a1c0e6-09d6-439e-91f1-81dbbc7b558a"
       }
     },
-    "owner": "jakeistoast"
+    "owner": "jakeistoast",
+    "plugins": [
+      "expo-font"
+    ]
   }
 }

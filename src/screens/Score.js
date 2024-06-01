@@ -77,7 +77,7 @@ const Score = ({ navigation }) => {
 	}; //Update numbers on countdown
 
 	const shareScore = () => {
-		const message = `Word Whirl Stats:
+		const message = `Wordy Whirl Stats:
 Games played: ${stats.games}
 Games won: ${stats.gamesWon}
 Streak: ${stats.streak}

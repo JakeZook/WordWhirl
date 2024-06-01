@@ -16,7 +16,7 @@ function MainMenu({ navigation }) {
 		<View style={styles.container}>
 			<View style={styles.content}>
 				<Text>
-					<Text style={styles.title}>Word </Text>
+					<Text style={styles.title}>Wordy </Text>
 					<Text style={[styles.title, styles.titleSecondary]}>Whirl</Text>
 				</Text>
 				<View style={styles.buttonContainer}>
