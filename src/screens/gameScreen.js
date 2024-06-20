@@ -395,7 +395,7 @@ export default function GameScreen({ navigation }) {
 					<HoveringText visible={invalidWord} message="Not in word list!" />
 				</React.Fragment>
 			)}
-			{gameOver && (
+			{gameState !== "Playing" && (
 				<Animated.View
 					entering={SlideInDown.delay(500)}
 					style={styles.shareContainer}

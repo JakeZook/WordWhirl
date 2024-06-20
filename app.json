@@ -1,43 +1,39 @@
 {
-  "expo": {
-    "name": "WordWhirl",
-    "slug": "wordwhirl",
-    "version": "1.0.0",
-    "orientation": "portrait",
-    "icon": "./assets/appstore.png",
-    "userInterfaceStyle": "dark",
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#000000"
-    },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
-    "fonts": {
-      "stones": "./assets/stones.otf"
-    },
-    "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.jakeistoast.wordwhirl"
-    },
-    "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/appstore.png",
-        "backgroundColor": "#000000"
-      }
-    },
-    "web": {
-      "favicon": "./assets/favicon-32x32.png"
-    },
-    "extra": {
-      "eas": {
-        "projectId": "e1a1c0e6-09d6-439e-91f1-81dbbc7b558a"
-      }
-    },
-    "owner": "jakeistoast",
-    "plugins": [
-      "expo-font"
-    ]
-  }
+	"expo": {
+		"name": "WordWhirl",
+		"slug": "wordwhirl",
+		"version": "1.1.1",
+		"orientation": "portrait",
+		"icon": "./assets/appstore.png",
+		"userInterfaceStyle": "dark",
+		"splash": {
+			"image": "./assets/splash.png",
+			"resizeMode": "contain",
+			"backgroundColor": "#000000"
+		},
+		"assetBundlePatterns": ["**/*"],
+		"fonts": {
+			"stones": "./assets/stones.otf"
+		},
+		"ios": {
+			"supportsTablet": true,
+			"bundleIdentifier": "com.jakeistoast.wordwhirl"
+		},
+		"android": {
+			"adaptiveIcon": {
+				"foregroundImage": "./assets/appstore.png",
+				"backgroundColor": "#000000"
+			}
+		},
+		"web": {
+			"favicon": "./assets/favicon-32x32.png"
+		},
+		"extra": {
+			"eas": {
+				"projectId": "e1a1c0e6-09d6-439e-91f1-81dbbc7b558a"
+			}
+		},
+		"owner": "jakeistoast",
+		"plugins": ["expo-font"]
+	}
 }
